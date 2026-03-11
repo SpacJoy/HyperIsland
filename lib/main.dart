@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:async';
 
 void main() {
   runApp(const MyApp());
@@ -7,116 +9,222 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'HyperIsland Test',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HyperIslandTestPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class HyperIslandTestPage extends StatefulWidget {
+  const HyperIslandTestPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HyperIslandTestPage> createState() => _HyperIslandTestPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HyperIslandTestPageState extends State<HyperIslandTestPage> {
+  static const platform = MethodChannel('com.example.hyperisland/test');
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  String _status = '准备就绪';
+  double _progress = 0.0;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _sendTestNotification(String type) async {
+    try {
+      bool success;
+      switch (type) {
+        case 'progress':
+          success = await platform.invokeMethod('showProgress', {
+            'title': '下载测试',
+            'fileName': 'test_file.apk',
+            'progress': _progress.toInt(),
+            'speed': '5.2 MB/s',
+            'remainingTime': '00:05',
+          });
+          break;
+        case 'complete':
+          success = await platform.invokeMethod('showComplete', {
+            'title': '下载完成',
+            'fileName': 'test_file.apk',
+          });
+          break;
+        case 'failed':
+          success = await platform.invokeMethod('showFailed', {
+            'title': '下载失败',
+            'fileName': 'test_file.apk',
+            'error': '网络连接超时',
+          });
+          break;
+        case 'indeterminate':
+          success = await platform.invokeMethod('showIndeterminate', {
+            'title': '准备中',
+            'content': '正在连接服务器...',
+          });
+          break;
+        case 'custom':
+          success = await platform.invokeMethod('showCustom', {
+            'type': 'custom_notification',
+            'title': '自定义通知',
+            'content': '这是一个自定义的灵动岛通知',
+            'icon': 'android.R.drawable.ic_dialog_info',
+          });
+          break;
+        default:
+          success = false;
+      }
+
+      setState(() {
+        _status = success ? '通知已发送' : '发送失败';
+      });
+    } on PlatformException catch (e) {
+      setState(() {
+        _status = '错误: ${e.message}';
+      });
+    }
+  }
+
+  void _startProgressDemo() {
+    _progress = 0.0;
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      setState(() {
+        _progress += 5.0;
+        if (_progress >= 100) {
+          _progress = 100;
+          timer.cancel();
+          _sendTestNotification('complete');
+        } else {
+          _sendTestNotification('progress');
+        }
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('HyperIsland 测试'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const Text(
+                      '状态',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(_status),
+                    const SizedBox(height: 16),
+                    if (_progress > 0 && _progress < 100)
+                      Column(
+                        children: [
+                          LinearProgressIndicator(
+                            value: _progress / 100,
+                          ),
+                          const SizedBox(height: 8),
+                          Text('${_progress.toInt()}%'),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _startProgressDemo,
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('开始进度演示'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () => _sendTestNotification('indeterminate'),
+              icon: const Icon(Icons.hourglass_empty),
+              label: const Text('显示不确定进度'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () => _sendTestNotification('complete'),
+              icon: const Icon(Icons.check_circle),
+              label: const Text('显示下载完成'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () => _sendTestNotification('failed'),
+              icon: const Icon(Icons.error),
+              label: const Text('显示下载失败'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () => _sendTestNotification('custom'),
+              icon: const Icon(Icons.notifications),
+              label: const Text('发送自定义通知'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '说明',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '此应用用于测试小米灵动岛通知功能。\n\n'
+                      '点击上方按钮可以发送不同类型的岛通知。\n\n'
+                      '注意: 需要在支持灵动岛的小米设备上运行。',
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
