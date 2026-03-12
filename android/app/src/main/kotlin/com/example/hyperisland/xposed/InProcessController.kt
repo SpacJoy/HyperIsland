@@ -129,6 +129,10 @@ object InProcessController {
     fun resumeIntent(context: Context, downloadId: Long) = makeIntent(context, CMD_RESUME, downloadId, reqCode(downloadId, 1))
     fun cancelIntent(context: Context, downloadId: Long) = makeIntent(context, CMD_CANCEL, downloadId, reqCode(downloadId, 2))
 
+    /** 暂停/取消所有下载（id=-1 触发 pauseAll/cancelAll） */
+    fun pauseAllIntent(context: Context)  = makeIntent(context, CMD_PAUSE,  -1L, 9000001)
+    fun cancelAllIntent(context: Context) = makeIntent(context, CMD_CANCEL, -1L, 9000002)
+
     fun dismissIntent(context: Context, notifId: Int, notifTag: String?): PendingIntent {
         val intent = Intent(ACTION).apply {
             putExtra(EXTRA_CMD, CMD_DISMISS)

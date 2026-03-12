@@ -175,17 +175,22 @@ class DownloadHook : IXposedHookLoadPackage {
             // 把 pause/cancel 写入标准 notification.actions[]
             // MIUI 超级岛点击按钮时，触发的是 actions[] 里的 PendingIntent
             val isComplete = progress >= 100
+            val isMultiFile = Regex("""\d+个文件""").containsMatchIn(title + text)
+            val pauseIntent  = if (isMultiFile) InProcessController.pauseAllIntent(context)  else InProcessController.pauseIntent(context, downloadId)
+            val cancelIntent = if (isMultiFile) InProcessController.cancelAllIntent(context) else InProcessController.cancelIntent(context, downloadId)
+            val pauseLabel   = if (isMultiFile) "全部暂停" else "暂停"
+            val cancelLabel  = if (isMultiFile) "全部取消" else "取消"
             // 下载完成时清空按钮，下载中时显示暂停+取消
             notif.actions = if (isComplete) emptyArray() else arrayOf(
                 Notification.Action.Builder(
                     Icon.createWithResource(context, android.R.drawable.ic_media_pause),
-                    "暂停",
-                    InProcessController.pauseIntent(context, downloadId)
+                    pauseLabel,
+                    pauseIntent
                 ).build(),
                 Notification.Action.Builder(
                     Icon.createWithResource(context, android.R.drawable.ic_delete),
-                    "取消",
-                    InProcessController.cancelIntent(context, downloadId)
+                    cancelLabel,
+                    cancelIntent
                 ).build()
             )
 

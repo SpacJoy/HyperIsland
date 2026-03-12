@@ -26,7 +26,7 @@ object DownloadIslandNotification {
     ) {
         try {
             val isComplete = progress >= 100
-            val displayTitle = if (progress in 0..99) "$fileName%下载中 $progress%" else title
+            val displayTitle = if (progress in 0..99) "$fileName下载中 $progress%" else title
             val displayContent = if (isComplete) "下载完成" else text.ifEmpty { fileName }
 
             val downloadIconRes = if (isComplete) android.R.drawable.stat_sys_download_done
@@ -34,8 +34,11 @@ object DownloadIslandNotification {
             val tintColor = if (isComplete) 0xFF4CAF50.toInt() else 0xFF2196F3.toInt()
             val downloadIcon = Icon.createWithResource(context, downloadIconRes).apply { setTint(tintColor) }
 
-            val pausePendingIntent  = InProcessController.pauseIntent(context, downloadId)
-            val cancelPendingIntent = InProcessController.cancelIntent(context, downloadId)
+            val isMultiFile = Regex("""\d+个文件""").containsMatchIn(title + text + fileName)
+            val pausePendingIntent  = if (isMultiFile) InProcessController.pauseAllIntent(context)  else InProcessController.pauseIntent(context, downloadId)
+            val cancelPendingIntent = if (isMultiFile) InProcessController.cancelAllIntent(context) else InProcessController.cancelIntent(context, downloadId)
+            val pauseLabel  = if (isMultiFile) "全部暂停" else "暂停"
+            val cancelLabel = if (isMultiFile) "全部取消" else "取消"
 
             val islandExtras = FocusNotification.buildV3 {
                 val downloadIconKey = createPicture("key_download_icon", downloadIcon)
@@ -96,20 +99,20 @@ object DownloadIslandNotification {
                         addActionInfo {
                             val pauseAction = Notification.Action.Builder(
                                 Icon.createWithResource(context, android.R.drawable.ic_media_pause),
-                                "暂停",
+                                pauseLabel,
                                 pausePendingIntent
                             ).build()
                             action = createAction("action_pause", pauseAction)
-                            actionTitle = "暂停"
+                            actionTitle = pauseLabel
                         }
                         addActionInfo {
                             val cancelAction = Notification.Action.Builder(
                                 Icon.createWithResource(context, android.R.drawable.ic_delete),
-                                "取消",
+                                cancelLabel,
                                 cancelPendingIntent
                             ).build()
                             action = createAction("action_cancel", cancelAction)
-                            actionTitle = "取消"
+                            actionTitle = cancelLabel
                         }
                     }
                 }
