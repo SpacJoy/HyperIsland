@@ -405,11 +405,12 @@ object InProcessController {
             val extras = extrasField?.get(notif) as? Bundle ?: return
 
             val pausedTitle = if (snapshot.isMultiFile) "${snapshot.fileName} 已暂停" else "已暂停"
+            val appIcon = if (useHookAppIconEnabled) getAppIcon(context, snapshot.packageName) else null
             DownloadIslandNotification.inject(
                 context, extras, pausedTitle, snapshot.fileName,
                 snapshot.progress, "", snapshot.fileName,
                 snapshot.downloadId, snapshot.packageName,
-                isPaused = true
+                isPaused = true, appIcon = appIcon
             )
             extras.putBoolean("hyperisland_processed", true)
 
