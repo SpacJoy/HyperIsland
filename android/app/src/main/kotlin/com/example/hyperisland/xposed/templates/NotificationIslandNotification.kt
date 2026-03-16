@@ -141,7 +141,7 @@ object NotificationIslandNotification : IslandTemplate {
             extras.putAll(islandExtras)
 
             XposedBridge.log(
-                "HyperIsland[NotifIsland]: Island injected — $title | left=$leftText | right=$rightContent | buttons=${actions.size}"
+                "HyperIsland[NotifIsland]: Island injected — $title | left=$leftText | right=$rightContent | buttons=${actions.size} | isOngoing=${isOngoing}"
             )
 
         } catch (e: Exception) {
