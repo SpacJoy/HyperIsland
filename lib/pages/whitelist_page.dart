@@ -39,9 +39,40 @@ class _WhitelistPageState extends State<WhitelistPage> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar.large(
-            title: const Text('第三方应用适配'),
+            title: const Text('应用适配'),
             backgroundColor: cs.surface,
             centerTitle: false,
+            actions: [
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) async {
+                  switch (value) {
+                    case 'toggle_system':
+                      _ctrl.setShowSystemApps(!_ctrl.showSystemApps);
+                    case 'enable_all':
+                      await _ctrl.enableAll();
+                    case 'disable_all':
+                      await _ctrl.disableAll();
+                  }
+                },
+                itemBuilder: (_) => [
+                  CheckedPopupMenuItem<String>(
+                    value: 'toggle_system',
+                    checked: _ctrl.showSystemApps,
+                    child: const Text('显示系统应用'),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<String>(
+                    value: 'enable_all',
+                    child: Text('一键开启全部'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'disable_all',
+                    child: Text('一键关闭全部'),
+                  ),
+                ],
+              ),
+            ],
           ),
 
           // 说明 + 搜索栏
@@ -52,7 +83,8 @@ class _WhitelistPageState extends State<WhitelistPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '已启用 $enabledCount 个应用的超级岛',
+                    '已启用 $enabledCount 个应用的超级岛'
+                    '${_ctrl.showSystemApps ? '（含系统应用）' : ''}',
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
@@ -92,7 +124,7 @@ class _WhitelistPageState extends State<WhitelistPage> {
             SliverFillRemaining(
               child: Center(
                 child: Text(
-                  _searchCtrl.text.isEmpty ? '没有找到已安装的应用' : '没有匹配的应用',
+                  _searchCtrl.text.isEmpty ? '没有找到已安装的应用\n请检查获取应用列表权限是否开启' : '没有匹配的应用',
                   style: TextStyle(color: cs.onSurfaceVariant),
                 ),
               ),

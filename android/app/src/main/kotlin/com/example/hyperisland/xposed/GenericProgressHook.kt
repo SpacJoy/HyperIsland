@@ -98,12 +98,12 @@ class GenericProgressHook : IXposedHookLoadPackage {
                 val template = context.contentResolver
                     .query(uri, null, null, null, null)
                     ?.use { if (it.moveToFirst()) it.getString(0).takeIf { s -> s.isNotBlank() } else null }
-                    ?: GenericProgressIslandNotification.TEMPLATE_ID
+                    ?: NotificationIslandNotification.TEMPLATE_ID
                 cachedTemplates[cacheKey] = template
                 template
             } catch (e: Exception) {
                 XposedBridge.log("HyperIsland[Generic]: loadChannelTemplate failed: ${e.message}")
-                GenericProgressIslandNotification.TEMPLATE_ID
+                NotificationIslandNotification.TEMPLATE_ID
             }
         }
 
@@ -267,6 +267,7 @@ class GenericProgressHook : IXposedHookLoadPackage {
                     firstFloat      = firstFloat,
                     enableFloatMode = enableFloatMode,
                     islandTimeout   = islandTimeout,
+                    isOngoing       = (notif.flags and Notification.FLAG_ONGOING_EVENT) != 0,
                 ),
             )
 

@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -21,9 +20,13 @@ class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.hyperisland/test"
     private val TAG = "HyperIsland"
     private val REQUEST_NOTIFICATION_PERMISSION = 1001
+    private val REQUEST_APP_LIST_PERMISSION     = 1002
 
     private var pendingResult: MethodChannel.Result? = null
     private var pendingCall: MethodCall? = null
+
+    private var pendingAppsResult: MethodChannel.Result? = null
+    private var pendingAppsIncludeSystem: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,17 +93,30 @@ class MainActivity : FlutterActivity() {
                 }
 
                 "getInstalledApps" -> {
-                    Thread {
-                        val apps = getInstalledUserApps()
-                        runOnUiThread { result.success(apps) }
-                    }.start()
+                    val includeSystem = call.argument<Boolean>("includeSystem") ?: false
+                    if (isMiuiAppListPermissionSupported() && !checkAppListPermission()) {
+                        pendingAppsResult = result
+                        pendingAppsIncludeSystem = includeSystem
+                        requestAppListPermission()
+                    } else {
+                        Thread {
+                            val apps = getInstalledApps(includeSystem)
+                            runOnUiThread { result.success(apps) }
+                        }.start()
+                    }
                 }
 
                 "getNotificationChannels" -> {
                     val pkg = call.argument<String>("packageName") ?: ""
                     Thread {
                         val channels = getNotificationChannelsForPackage(pkg)
-                        runOnUiThread { result.success(channels) }
+                        runOnUiThread {
+                            if (channels == null) {
+                                result.error("ROOT_REQUIRED", "无法读取通知渠道，请检查ROOT权限", null)
+                            } else {
+                                result.success(channels)
+                            }
+                        }
                     }.start()
                 }
 
@@ -153,20 +169,23 @@ class MainActivity : FlutterActivity() {
      * 通知渠道持久化在 /data/system/notification_policy.xml，
      * 用 root 读取后用 XmlPullParser 解析，无需调用任何受限 API。
      */
-    private fun getNotificationChannelsForPackage(pkg: String): List<Map<String, Any?>> {
+    private fun getNotificationChannelsForPackage(pkg: String): List<Map<String, Any?>>? {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return emptyList()
         return tryGetChannelsFromPolicyFile(pkg)
     }
 
-    private fun tryGetChannelsFromPolicyFile(pkg: String): List<Map<String, Any?>> {
+    private fun tryGetChannelsFromPolicyFile(pkg: String): List<Map<String, Any?>>? {
         return try {
             val xml = convertAbxPolicyToXml()
-            if (xml.isEmpty()) { Log.w(TAG, "convertAbxPolicyToXml: empty"); return emptyList() }
+            if (xml.isEmpty()) {
+                Log.w(TAG, "convertAbxPolicyToXml: empty (ROOT权限不足?)")
+                return null
+            }
             Log.d(TAG, "policy xml: ${xml.length} chars")
             parseTextXmlChannels(xml.toByteArray(Charsets.UTF_8), pkg)
         } catch (e: Exception) {
             Log.e(TAG, "tryGetChannelsFromPolicyFile: ${e.message}")
-            emptyList()
+            null
         }
     }
 
@@ -365,30 +384,59 @@ class MainActivity : FlutterActivity() {
         return result
     }
 
-    /** 返回所有已安装应用（排除自身），每项含 packageName / appName / icon（PNG bytes）。*/
-    private fun getInstalledUserApps(): List<Map<String, Any>> {
+    /** 返回已安装应用列表（排除自身），每项含 packageName / appName / icon / isSystem。
+     *  includeSystem=false 时仅返回第三方应用。 */
+    private fun getInstalledApps(includeSystem: Boolean): List<Map<String, Any>> {
         val pm = packageManager
         return pm.getInstalledApplications(0)
-            .filter { it.packageName != packageName && (it.flags and ApplicationInfo.FLAG_SYSTEM) == 0 }
+            .filter { app ->
+                app.packageName != packageName &&
+                (includeSystem || (app.flags and ApplicationInfo.FLAG_SYSTEM) == 0)
+            }
             .mapNotNull { app ->
                 try {
                     val label    = pm.getApplicationLabel(app).toString()
-                    val drawable = pm.getApplicationIcon(app.packageName)
-                    val size = 96
-                    val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-                    val canvas = Canvas(bmp)
-                    drawable.setBounds(0, 0, size, size)
-                    drawable.draw(canvas)
+                    val bmp = pm.getApplicationIcon(app.packageName).toBitmap(96)
                     val stream = ByteArrayOutputStream()
                     bmp.compress(Bitmap.CompressFormat.PNG, 90, stream)
                     mapOf(
                         "packageName" to app.packageName,
                         "appName"     to label,
-                        "icon"        to stream.toByteArray()
+                        "icon"        to stream.toByteArray(),
+                        "isSystem"    to ((app.flags and ApplicationInfo.FLAG_SYSTEM) != 0)
                     )
                 } catch (_: Exception) { null }
             }
             .sortedBy { it["appName"] as String }
+    }
+
+    private companion object {
+        const val PERM_GET_INSTALLED_APPS = "com.android.permission.GET_INSTALLED_APPS"
+        const val PERM_MANAGER_MIUI       = "com.lbe.security.miui"
+    }
+
+    /** 返回 MIUI 是否支持动态申请获取应用列表权限。 */
+    private fun isMiuiAppListPermissionSupported(): Boolean {
+        return try {
+            val info = packageManager.getPermissionInfo(PERM_GET_INSTALLED_APPS, 0)
+            info != null && info.packageName == PERM_MANAGER_MIUI
+        } catch (_: PackageManager.NameNotFoundException) {
+            false
+        }
+    }
+
+    private fun checkAppListPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this, PERM_GET_INSTALLED_APPS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestAppListPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(PERM_GET_INSTALLED_APPS),
+            REQUEST_APP_LIST_PERMISSION
+        )
     }
 
     private fun checkNotificationPermission(): Boolean {
@@ -434,6 +482,19 @@ class MainActivity : FlutterActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == REQUEST_APP_LIST_PERMISSION) {
+            // 无论是否授权，都执行查询（未授权时返回有限列表）
+            val r = pendingAppsResult
+            val incSys = pendingAppsIncludeSystem
+            pendingAppsResult = null
+            if (r != null) {
+                Thread {
+                    val apps = getInstalledApps(incSys)
+                    runOnUiThread { r.success(apps) }
+                }.start()
+            }
+        }
 
         if (requestCode == REQUEST_NOTIFICATION_PERMISSION) {
             val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
