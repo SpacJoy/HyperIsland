@@ -101,15 +101,23 @@ class WhitelistController extends ChangeNotifier {
       final rawList =
           await _channel.invokeMethod<List<dynamic>>(
               'getInstalledApps', {'includeSystem': true}) ?? [];
-      _allApps = rawList.map((raw) {
-        final map = Map<String, dynamic>.from(raw as Map);
-        return AppInfo(
-          packageName: map['packageName'] as String,
-          appName: map['appName'] as String,
-          icon: Uint8List.fromList((map['icon'] as List).cast<int>()),
-          isSystem: map['isSystem'] as bool? ?? false,
-        );
-      }).toList();
+      const _excludedPackages = {
+        'com.android.providers.downloads',
+        'com.xiaomi.android.app.downloadmanager',
+        'com.android.systemui',
+      };
+      _allApps = rawList
+          .map((raw) {
+            final map = Map<String, dynamic>.from(raw as Map);
+            return AppInfo(
+              packageName: map['packageName'] as String,
+              appName: map['appName'] as String,
+              icon: Uint8List.fromList((map['icon'] as List).cast<int>()),
+              isSystem: map['isSystem'] as bool? ?? false,
+            );
+          })
+          .where((a) => !_excludedPackages.contains(a.packageName))
+          .toList();
       _resort();
     } catch (e) {
       debugPrint('WhitelistController._load error: $e');
