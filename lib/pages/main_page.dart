@@ -29,6 +29,7 @@ class _MainPageState extends State<MainPage> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
+          FocusScope.of(context).unfocus();
           if (index == 1 && _whitelistPage == null) {
             _whitelistPage = const WhitelistPage();
           }
