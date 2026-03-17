@@ -111,10 +111,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pub-
 
-      # 第六步：缓存 Gradle
-      # 缓存 Gradle 依赖和构建缓存，加快编译速度
-      - name: Cache Gradle
+      # 第六步：设置 Gradle
+      # 使用官方 Gradle setup action，自动处理缓存
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4.1.0
+        with:
+          gradle-version: wrapper
 
       # 第七步：安装 Flutter 依赖
       # 执行 flutter pub get 下载 pubspec.yaml 中定义的所有依赖包
