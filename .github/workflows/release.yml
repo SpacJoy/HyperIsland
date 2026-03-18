@@ -119,9 +119,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4.1.0
         with:
-          gradle-version: wrapper
           cache-read-only: false
-          cache-cleanup: never
+
 
       # 第七步：安装 Flutter 依赖
       # 执行 flutter pub get 下载 pubspec.yaml 中定义的所有依赖包
