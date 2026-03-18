@@ -110,6 +110,11 @@ jobs:
         with:
           gradle-version: wrapper
 
+      # 第五点五步：清理 Flutter 缓存
+      # 清理 build/ 目录和中间文件，确保构建环境纯净
+      - name: Clean Flutter
+        run: flutter clean
+
       # 第六步：安装 Flutter 依赖
       # 执行 flutter pub get 下载 pubspec.yaml 中定义的所有依赖包
       - name: Install dependencies
