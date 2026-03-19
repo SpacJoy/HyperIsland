@@ -479,12 +479,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get autoAccessibilityFailed => '静默开启失败（Root 取消或超时），请前往系统设置手动开启';
-
-  @override
-  String get jumpToAccessibility => '前往无障碍设置';
-
-  @override
   String blacklistedAppsCount(int count) {
     return '已拦截 $count 个应用的焦点通知';
   }

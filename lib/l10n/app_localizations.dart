@@ -950,18 +950,6 @@ abstract class AppLocalizations {
   /// **'已从模板中添加 {count} 款已安装游戏至黑名单'**
   String presetGamesSuccess(int count);
 
-  /// No description provided for @autoAccessibilityFailed.
-  ///
-  /// In zh, this message translates to:
-  /// **'静默开启失败（Root 取消或超时），请前往系统设置手动开启'**
-  String get autoAccessibilityFailed;
-
-  /// No description provided for @jumpToAccessibility.
-  ///
-  /// In zh, this message translates to:
-  /// **'前往无障碍设置'**
-  String get jumpToAccessibility;
-
   /// No description provided for @blacklistedAppsCount.
   ///
   /// In zh, this message translates to:

@@ -494,13 +494,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get autoAccessibilityFailed =>
-      'Silent enable failed (Root rejected/timeout). Please turn on manually.';
-
-  @override
-  String get jumpToAccessibility => 'Go to Accessibility Settings';
-
-  @override
   String blacklistedAppsCount(int count) {
     return 'Blocked focus notifications for $count apps';
   }

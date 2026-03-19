@@ -163,8 +163,6 @@
       }
     }
   },
-  "autoAccessibilityFailed": "Silent enable failed (Root rejected/timeout). Please turn on manually.",
-  "jumpToAccessibility": "Go to Accessibility Settings",
   "blacklistedAppsCount": "Blocked focus notifications for {count} apps",
   "blacklistedAppsCountWithSystem": "Blocked focus notifications for {count} apps (including system apps)"
 }

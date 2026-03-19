@@ -267,8 +267,6 @@
       }
     }
   },
-  "autoAccessibilityFailed": "静默开启失败（Root 取消或超时），请前往系统设置手动开启",
-  "jumpToAccessibility": "前往无障碍设置",
   "blacklistedAppsCount": "已拦截 {count} 个应用的焦点通知",
   "@blacklistedAppsCount": {
     "placeholders": {
