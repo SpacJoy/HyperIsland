@@ -478,8 +478,15 @@ class _AppTile extends StatelessWidget {
                       value: isSelected,
                       onChanged: (_) => onTap(),
                     )
-                  else
+                  else ...[
                     Switch(value: enabled, onChanged: onChanged),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right,
+                      color: cs.onSurfaceVariant,
+                      size: 20,
+                    ),
+                  ],
                 ],
               ),
             ),
