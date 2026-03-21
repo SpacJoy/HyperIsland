@@ -33,6 +33,7 @@ class MainActivity : FlutterActivity() {
                     content          = "HyperIsland",
                     icon             = icon,
                     firstFloat       = false,
+                    enableFloat      = false,
                     highlightColor   = "#E040FB",
                     showNotification = false,
                 )
