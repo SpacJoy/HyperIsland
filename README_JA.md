@@ -101,7 +101,7 @@ flutter build apk --target-platform=android-arm64
 
 ## 📄 ライセンス
 
-このプロジェクトは [MIT ライセンス](LICENSE)に基づき、オープンソースとして公開しています。Issue や Pull Request を歓迎します。
+このプロジェクトは [MIT License](LICENSE) に基づき、オープンソースとして公開しています。Issue や Pull Request を歓迎します。
 
 <div align="center">
 
