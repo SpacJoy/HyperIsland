@@ -358,13 +358,17 @@ class _SettingsPageState extends State<SettingsPage> {
                                               ?.copyWith(
                                                   color: cs.onSurfaceVariant),
                                         ),
-                                        if (_ctrl.marqueeSpeed != 100)
-                                          IconButton(
+                                        Opacity(
+                                          opacity: _ctrl.marqueeSpeed != 100 ? 1.0 : 0.0,
+                                          child: IconButton(
                                             icon: const Icon(Icons.refresh, size: 16),
                                             padding: EdgeInsets.zero,
                                             visualDensity: VisualDensity.compact,
-                                            onPressed: () => _ctrl.setMarqueeSpeed(100),
+                                            onPressed: _ctrl.marqueeSpeed != 100
+                                                ? () => _ctrl.setMarqueeSpeed(100)
+                                                : null,
                                           ),
+                                        ),
                                       ],
                                     ),
                                   ],
