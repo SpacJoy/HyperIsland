@@ -107,10 +107,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get restartRootRequired => 'このアプリに root 権限が付与されているか確認してください';
 
   @override
-  String get note1 => '1. このページは Dynamic Island の対応をテストするためのものであり、実際の効果を示すものではありません。';
+  String get note1 =>
+      '1. このページは Dynamic Island の対応をテストするためのものであり、実際の効果を示すものではありません。';
 
   @override
-  String get note2 => '2. HyperCeiler でシステム UI と MIUI フレームワークのフォーカス通知のホワイトリストを無効化してください。';
+  String get note2 =>
+      '2. HyperCeiler でシステム UI と MIUI フレームワークのフォーカス通知のホワイトリストを無効化してください。';
 
   @override
   String get note3 => '3. LSPosed Manager で有効化後に関連するスコープアプリを再起動する必要があります。';
@@ -134,7 +136,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get keepFocusNotifTitle => 'ダウンロードの一時停止後も通知をフォーカスする';
 
   @override
-  String get keepFocusNotifSubtitle => 'ダウンロードを再開するための通知を表示しますが、状態の同期でズレが発生する可能性があります';
+  String get keepFocusNotifSubtitle =>
+      'ダウンロードを再開するための通知を表示しますが、状態の同期でズレが発生する可能性があります';
 
   @override
   String get checkUpdateOnLaunchTitle => '起動時に更新を確認する';
@@ -182,10 +185,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get languageZh => '中文';
 
   @override
-  String get languageJa => '日本語';
+  String get languageEn => 'English';
 
   @override
-  String get languageEn => 'English';
+  String get languageJa => '日本語';
 
   @override
   String get exportToFile => 'ファイルにエクスポート';
@@ -328,7 +331,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cannotReadChannels => '通知チャンネルを読み込めません';
 
   @override
-  String get rootRequiredMessage => '通知チャンネルの読み取りには root 権限が必要です。\nroot 権限が付与されていることを確認後に再度お試しください。';
+  String get rootRequiredMessage =>
+      '通知チャンネルの読み取りには root 権限が必要です。\nroot 権限が付与されていることを確認後に再度お試しください。';
 
   @override
   String get enableAllChannels => 'すべてのチャンネルで有効';
